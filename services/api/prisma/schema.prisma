@@ -1,0 +1,394 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts"
+  importFileExtension    = ""
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  MENTOR
+  CONTENT_WRITER
+  REVIEWER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum ContentStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+enum TestCaseVisibility {
+  SAMPLE
+  PUBLIC
+  HIDDEN
+}
+
+enum TestCaseType {
+  NORMAL
+  EDGE
+  STRESS
+}
+
+enum ComparisonMode {
+  TRIMMED
+  EXACT
+  TOKEN
+  FLOAT
+  CUSTOM
+}
+
+enum SubmissionStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum SubmissionKind {
+  RUN
+  SUBMIT
+}
+
+enum Verdict {
+  ACCEPTED
+  WRONG_ANSWER
+  TIME_LIMIT_EXCEEDED
+  MEMORY_LIMIT_EXCEEDED
+  RUNTIME_ERROR
+  COMPILATION_ERROR
+  PARTIALLY_ACCEPTED
+  INTERNAL_ERROR
+}
+
+enum ProgressStatus {
+  UNSOLVED
+  ATTEMPTED
+  SOLVED
+}
+
+model User {
+  id                    String                @id @default(uuid()) @db.Uuid
+  username              String                @unique @db.VarChar(50)
+  email                 String                @unique @db.VarChar(255)
+  passwordHash          String?               @map("password_hash")
+  fullName              String?               @map("full_name") @db.VarChar(120)
+  avatarUrl             String?               @map("avatar_url")
+  bio                   String?
+  role                  Role                  @default(STUDENT)
+  level                 SkillLevel            @default(BEGINNER)
+  preferredLanguage     String                @default("python") @map("preferred_language") @db.VarChar(30)
+  instituteName         String?               @map("institute_name") @db.VarChar(150)
+  graduationYear        Int?                  @map("graduation_year")
+  isEmailVerified       Boolean               @default(false) @map("is_email_verified")
+  isActive              Boolean               @default(true) @map("is_active")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+  refreshTokens         RefreshToken[]
+  createdProblems       Problem[]             @relation("ProblemCreator")
+  reviewedProblems      Problem[]             @relation("ProblemReviewer")
+  authoredEditorials    Editorial[]
+  submissions           Submission[]
+  progress              UserProblemProgress[]
+  auditLogs             AuditLog[]            @relation("AuditActor")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  tokenHash  String   @map("token_hash")
+  expiresAt  DateTime @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Problem {
+  id                  String             @id @default(uuid()) @db.Uuid
+  slug                String             @unique @db.VarChar(180)
+  title               String             @db.VarChar(200)
+  shortDescription    String?            @map("short_description")
+  statement           String
+  inputFormat         String?            @map("input_format")
+  outputFormat        String?            @map("output_format")
+  constraints         String?
+  difficulty          Difficulty
+  points              Int                @default(10)
+  timeLimitMs         Int                @default(1000) @map("time_limit_ms")
+  memoryLimitMb       Int                @default(256) @map("memory_limit_mb")
+  comparisonMode      ComparisonMode     @default(TRIMMED) @map("comparison_mode")
+  acceptanceRate      Decimal            @default(0) @map("acceptance_rate") @db.Decimal(5, 2)
+  totalSubmissions    Int                @default(0) @map("total_submissions")
+  acceptedSubmissions Int                @default(0) @map("accepted_submissions")
+  visibility          Visibility         @default(PUBLIC)
+  status              ContentStatus      @default(DRAFT)
+  version             Int                @default(1)
+  createdById         String             @map("created_by") @db.Uuid
+  reviewedById        String?            @map("reviewed_by") @db.Uuid
+  deletedAt           DateTime?          @map("deleted_at")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  createdBy           User               @relation("ProblemCreator", fields: [createdById], references: [id])
+  reviewedBy          User?              @relation("ProblemReviewer", fields: [reviewedById], references: [id])
+  examples            ProblemExample[]
+  testCases           TestCase[]
+  codeTemplates       CodeTemplate[]
+  tags                ProblemTag[]
+  hints               Hint[]
+  editorial           Editorial?
+  submissions         Submission[]
+  progress            UserProblemProgress[]
+
+  @@index([difficulty])
+  @@index([status, visibility])
+  @@index([createdAt])
+  @@map("problems")
+}
+
+model ProblemExample {
+  id           String  @id @default(uuid()) @db.Uuid
+  problemId    String  @map("problem_id") @db.Uuid
+  input        String
+  output       String
+  explanation  String?
+  displayOrder Int     @default(1) @map("display_order")
+  problem      Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
+  @@map("problem_examples")
+}
+
+model TestCase {
+  id               String             @id @default(uuid()) @db.Uuid
+  problemId        String             @map("problem_id") @db.Uuid
+  input            String?
+  expectedOutput   String?            @map("expected_output")
+  inputFileUrl     String?            @map("input_file_url")
+  outputFileUrl    String?            @map("output_file_url")
+  visibility       TestCaseVisibility
+  testType         TestCaseType       @default(NORMAL) @map("test_type")
+  weight           Int                @default(1)
+  timeLimitMs      Int?               @map("time_limit_ms")
+  memoryLimitMb    Int?               @map("memory_limit_mb")
+  explanation      String?
+  isActive         Boolean            @default(true) @map("is_active")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  problem          Problem            @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  submissionResults SubmissionTestResult[]
+
+  @@index([problemId, visibility])
+  @@map("test_cases")
+}
+
+model Language {
+  id              String              @id @default(uuid()) @db.Uuid
+  name            String              @db.VarChar(50)
+  slug            String              @unique @db.VarChar(50)
+  judgeLanguageId Int?                @map("judge_language_id")
+  version         String?             @db.VarChar(50)
+  fileExtension   String?             @map("file_extension") @db.VarChar(20)
+  compileCommand  String?             @map("compile_command")
+  runCommand      String?             @map("run_command")
+  isActive        Boolean             @default(true) @map("is_active")
+  codeTemplates   CodeTemplate[]
+  editorialSolutions EditorialSolution[]
+  submissions     Submission[]
+
+  @@map("languages")
+}
+
+model CodeTemplate {
+  id                String   @id @default(uuid()) @db.Uuid
+  problemId         String   @map("problem_id") @db.Uuid
+  languageId        String   @map("language_id") @db.Uuid
+  starterCode       String   @map("starter_code")
+  functionSignature String?  @map("function_signature")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  problem           Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  language          Language @relation(fields: [languageId], references: [id])
+
+  @@unique([problemId, languageId])
+  @@map("code_templates")
+}
+
+model Tag {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @unique @db.VarChar(80)
+  slug        String       @unique @db.VarChar(80)
+  category    String?      @db.VarChar(50)
+  description String?
+  problems    ProblemTag[]
+
+  @@map("tags")
+}
+
+model ProblemTag {
+  problemId String  @map("problem_id") @db.Uuid
+  tagId     String  @map("tag_id") @db.Uuid
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([problemId, tagId])
+  @@map("problem_tags")
+}
+
+model Hint {
+  id              String   @id @default(uuid()) @db.Uuid
+  problemId       String   @map("problem_id") @db.Uuid
+  level           Int
+  content         String
+  unlockCondition String?  @map("unlock_condition") @db.VarChar(50)
+  createdAt       DateTime @default(now()) @map("created_at")
+  problem         Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([problemId, level])
+  @@map("hints")
+}
+
+model Editorial {
+  id                String              @id @default(uuid()) @db.Uuid
+  problemId         String              @unique @map("problem_id") @db.Uuid
+  intuition         String?
+  bruteForce        String?             @map("brute_force")
+  optimizedApproach String?             @map("optimized_approach")
+  dryRun            String?             @map("dry_run")
+  complexity        String?
+  commonMistakes    String?             @map("common_mistakes")
+  authorId          String              @map("author_id") @db.Uuid
+  status            ContentStatus       @default(DRAFT)
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  problem           Problem             @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  author            User                @relation(fields: [authorId], references: [id])
+  solutions         EditorialSolution[]
+
+  @@map("editorials")
+}
+
+model EditorialSolution {
+  id          String    @id @default(uuid()) @db.Uuid
+  editorialId String    @map("editorial_id") @db.Uuid
+  languageId  String    @map("language_id") @db.Uuid
+  code        String
+  explanation String?
+  editorial   Editorial @relation(fields: [editorialId], references: [id], onDelete: Cascade)
+  language    Language  @relation(fields: [languageId], references: [id])
+
+  @@unique([editorialId, languageId])
+  @@map("editorial_solutions")
+}
+
+model Submission {
+  id               String             @id @default(uuid()) @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  problemId        String             @map("problem_id") @db.Uuid
+  languageId       String             @map("language_id") @db.Uuid
+  code             String
+  kind             SubmissionKind     @default(SUBMIT)
+  status           SubmissionStatus   @default(QUEUED)
+  verdict          Verdict?
+  runtimeMs        Int?               @map("runtime_ms")
+  memoryKb         Int?               @map("memory_kb")
+  passedTestCases  Int                @default(0) @map("passed_test_cases")
+  totalTestCases   Int                @default(0) @map("total_test_cases")
+  errorMessage     String?            @map("error_message")
+  judgeResponse    Json?              @map("judge_response")
+  submittedAt      DateTime           @default(now()) @map("submitted_at")
+  judgedAt         DateTime?          @map("judged_at")
+  user             User               @relation(fields: [userId], references: [id])
+  problem          Problem            @relation(fields: [problemId], references: [id])
+  language         Language           @relation(fields: [languageId], references: [id])
+  testResults      SubmissionTestResult[]
+  bestForProgress  UserProblemProgress[] @relation("BestSubmission")
+
+  @@index([userId, submittedAt])
+  @@index([problemId, submittedAt])
+  @@index([status])
+  @@map("submissions")
+}
+
+model SubmissionTestResult {
+  id             String     @id @default(uuid()) @db.Uuid
+  submissionId   String     @map("submission_id") @db.Uuid
+  testCaseId     String     @map("test_case_id") @db.Uuid
+  status         Verdict
+  actualOutput   String?    @map("actual_output")
+  expectedOutput String?    @map("expected_output")
+  stderr         String?
+  runtimeMs      Int?       @map("runtime_ms")
+  memoryKb       Int?       @map("memory_kb")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  testCase       TestCase   @relation(fields: [testCaseId], references: [id])
+
+  @@unique([submissionId, testCaseId])
+  @@map("submission_test_results")
+}
+
+model UserProblemProgress {
+  id               String         @id @default(uuid()) @db.Uuid
+  userId           String         @map("user_id") @db.Uuid
+  problemId        String         @map("problem_id") @db.Uuid
+  status           ProgressStatus @default(UNSOLVED)
+  bestSubmissionId String?        @map("best_submission_id") @db.Uuid
+  attempts         Int            @default(0)
+  solvedAt         DateTime?      @map("solved_at")
+  lastAttemptedAt  DateTime?      @map("last_attempted_at")
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem          Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  bestSubmission   Submission?    @relation("BestSubmission", fields: [bestSubmissionId], references: [id])
+
+  @@unique([userId, problemId])
+  @@index([userId, status])
+  @@map("user_problem_progress")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(80)
+  entityId   String?  @map("entity_id") @db.VarChar(100)
+  metadata   Json?
+  ipAddress  String?  @map("ip_address") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at")
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

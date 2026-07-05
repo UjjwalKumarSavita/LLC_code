@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: llc-code-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-llc_code}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the root .env file}"
+      POSTGRES_DB: "${POSTGRES_DB:-llc_code}"
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - llc_code_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    container_name: llc-code-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - llc_code_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  piston:
+    image: ghcr.io/engineer-man/piston@sha256:2f66b7456189c4d713aa986d98eccd0b6ee16d26c7ec5f21b30e942756fd127a
+    container_name: llc-code-piston
+    restart: unless-stopped
+    privileged: true
+    environment:
+      PISTON_RUN_TIMEOUT: "10000"
+      PISTON_RUN_CPU_TIME: "10000"
+    ports:
+      - "127.0.0.1:${PISTON_PORT:-2000}:2000"
+    volumes:
+      - llc_code_piston_data:/piston
+
+volumes:
+  llc_code_postgres_data:
+  llc_code_redis_data:
+  llc_code_piston_data:

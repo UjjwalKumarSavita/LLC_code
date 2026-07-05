@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Next.js output
+.next/
+out/
+services/api/dist/
+services/api/coverage/
+services/api/src/generated/
+
+# Local package cache
+.npm-cache/
+
+# Logs
+*.log
+npm-debug.log*
+.local-runtime/
+test-results/
+playwright-report/
+
+# Environment and local settings
+.env
+.env.local
+.env.*.local
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
