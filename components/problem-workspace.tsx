@@ -36,7 +36,7 @@ const defaultEditorSettings: EditorSettings = {
 function readDraft(problem: Problem, language: Language) {
   const starter = problem.starterCode[language] ?? "";
   if (typeof window === "undefined") return starter;
-  const key = `llc-code:draft:${problem.slug}:${languageSlugs[language]}`;
+  const key = `llc-code:draft:v2:${problem.slug}:${languageSlugs[language]}`;
   return window.localStorage.getItem(key) ?? starter;
 }
 
@@ -107,7 +107,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   const availableLanguages = problem.availableLanguages?.length
     ? problem.availableLanguages
     : languages.filter((item) => Boolean(problem.starterCode[item]));
-  const draftKey = `llc-code:draft:${problem.slug}:${languageSlugs[language]}`;
+  const draftKey = `llc-code:draft:v2:${problem.slug}:${languageSlugs[language]}`;
 
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -578,7 +578,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
             <div className="run-actions">
               <span>ISOLATED JUDGE QUEUE</span>
               <button disabled={Boolean(running)} onClick={() => void judge("run")} type="button">
-                <PlayIcon /> {running === "run" ? "Running..." : "Run samples"}
+                <PlayIcon /> {running === "run" ? "Running public tests..." : "Run public tests"}
               </button>
               <button disabled={Boolean(running)} onClick={() => void judge("submit")} type="button">
                 {running === "submit" ? "Judging hidden tests..." : "Submit solution"}

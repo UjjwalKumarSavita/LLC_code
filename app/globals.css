@@ -5223,6 +5223,21 @@ svg {
   resize: none;
 }
 
+.basic-code-editor {
+  background: var(--paper);
+  border: 0;
+  color: var(--ink);
+  font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 14px;
+  height: 100%;
+  line-height: 1.7;
+  outline: 0;
+  padding: 18px 24px;
+  resize: none;
+  tab-size: 4;
+  width: 100%;
+}
+
 .run-actions {
   align-items: center;
   border-top: 1px solid var(--line);

@@ -63,6 +63,50 @@ describe("SubmissionsService", () => {
     expect(queue.enqueue.mock.calls[0]).not.toContain("console.log(1)");
   });
 
+  it("runs only sample and public test cases", async () => {
+    await service.create(
+      {
+        problemSlug: "two-sum",
+        languageSlug: "python",
+        code: "print('attempt')"
+      },
+      "user-id",
+      SubmissionKind.RUN
+    );
+
+    expect(prisma.problem.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          testCases: expect.objectContaining({
+            where: expect.objectContaining({
+              visibility: {
+                in: [
+                  TestCaseVisibility.SAMPLE,
+                  TestCaseVisibility.PUBLIC
+                ]
+              }
+            })
+          })
+        })
+      })
+    );
+  });
+
+  it("includes hidden test cases only in a final submission", async () => {
+    await service.create(
+      {
+        problemSlug: "two-sum",
+        languageSlug: "python",
+        code: "print('attempt')"
+      },
+      "user-id",
+      SubmissionKind.SUBMIT
+    );
+
+    const query = prisma.problem.findFirst.mock.calls[0][0];
+    expect(query.select.testCases.where.visibility).toBeUndefined();
+  });
+
   it("fails closed when Redis cannot accept the job", async () => {
     queue.enqueue.mockRejectedValue(new Error("offline"));
     prisma.submission.update.mockResolvedValue({});

@@ -87,6 +87,48 @@ const languages = [
   }
 ];
 
+function starterCodeFor(languageSlug: string) {
+  const templates: Record<string, string> = {
+    python: `import sys
+
+def solve():
+    data = sys.stdin.read().strip().split()
+    # TODO: parse the input, solve the problem, and print the answer.
+    pass
+
+if __name__ == "__main__":
+    solve()`,
+    javascript: `const fs = require("fs");
+
+const input = fs.readFileSync(0, "utf8").trim().split(/\\s+/);
+
+// TODO: parse the input, solve the problem, and print the answer.
+`,
+    java: `import java.util.*;
+
+class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+
+        // TODO: parse the input, solve the problem, and print the answer.
+    }
+}`,
+    cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    // TODO: read input, solve the problem, and print the answer.
+    return 0;
+}`
+  };
+
+  const starterCode = templates[languageSlug];
+  if (!starterCode) {
+    throw new Error(`Missing learner starter scaffold for ${languageSlug}`);
+  }
+  return starterCode;
+}
+
 async function main() {
   const languageIds = new Map<string, string>();
   for (const language of languages) {
@@ -245,11 +287,11 @@ async function seedJudgeProblem(
     create: {
       problemId: problem.id,
       languageId: pythonId,
-      starterCode: definition.python,
+      starterCode: starterCodeFor("python"),
       functionSignature: "stdin -> stdout"
     },
     update: {
-      starterCode: definition.python,
+      starterCode: starterCodeFor("python"),
       functionSignature: "stdin -> stdout"
     }
   });
@@ -263,7 +305,7 @@ async function seedJudgeProblem(
   if (!extraTemplates) {
     throw new Error(`Missing extra language templates for ${definition.slug}`);
   }
-  for (const [slug, starterCode] of Object.entries(extraTemplates)) {
+  for (const slug of Object.keys(extraTemplates)) {
     const languageId = languageIds.get(slug);
     if (!languageId) throw new Error(`${slug} language seed is missing`);
     await prisma.codeTemplate.upsert({
@@ -276,11 +318,11 @@ async function seedJudgeProblem(
       create: {
         problemId: problem.id,
         languageId,
-        starterCode,
+        starterCode: starterCodeFor(slug),
         functionSignature: "stdin -> stdout"
       },
       update: {
-        starterCode,
+        starterCode: starterCodeFor(slug),
         functionSignature: "stdin -> stdout"
       }
     });
@@ -392,78 +434,19 @@ async function seedTwoSum(
   const templates: Record<string, { starterCode: string; signature: string }> = {
     python: {
       signature: "stdin -> stdout",
-      starterCode: `import sys
-
-values = list(map(int, sys.stdin.read().split()))
-target, nums = values[0], values[1:]
-seen = {}
-
-for index, value in enumerate(nums):
-    complement = target - value
-    if complement in seen:
-        print(seen[complement], index)
-        break
-    seen[value] = index`
+      starterCode: starterCodeFor("python")
     },
     javascript: {
       signature: "stdin -> stdout",
-      starterCode: `const fs = require("fs");
-
-const values = fs.readFileSync(0, "utf8").trim().split(/\\s+/).map(Number);
-const [target, ...nums] = values;
-const seen = new Map();
-
-for (let index = 0; index < nums.length; index++) {
-  const complement = target - nums[index];
-  if (seen.has(complement)) {
-    console.log(seen.get(complement), index);
-    break;
-  }
-  seen.set(nums[index], index);
-}`
+      starterCode: starterCodeFor("javascript")
     },
     java: {
       signature: "stdin -> stdout",
-      starterCode: `import java.util.*;
-
-class Main {
-    public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
-        int target = input.nextInt();
-        Map<Integer, Integer> seen = new HashMap<>();
-        int index = 0;
-        while (input.hasNextInt()) {
-            int value = input.nextInt();
-            int complement = target - value;
-            if (seen.containsKey(complement)) {
-                System.out.println(seen.get(complement) + " " + index);
-                return;
-            }
-            seen.put(value, index++);
-        }
-    }
-}`
+      starterCode: starterCodeFor("java")
     },
     cpp: {
       signature: "stdin -> stdout",
-      starterCode: `#include <iostream>
-#include <unordered_map>
-using namespace std;
-
-int main() {
-    int target, value, index = 0;
-    cin >> target;
-    unordered_map<int, int> seen;
-    while (cin >> value) {
-        int complement = target - value;
-        if (seen.count(complement)) {
-            cout << seen[complement] << ' ' << index << '\\n';
-            return 0;
-        }
-        seen[value] = index++;
-    }
-    return 0;
-}`
+      starterCode: starterCodeFor("cpp")
     }
   };
 

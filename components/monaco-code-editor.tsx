@@ -1,7 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { BeforeMount, OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import type { Language } from "@/lib/problem-types";
@@ -72,11 +78,19 @@ export function MonacoCodeEditor({
   );
   const runRef = useRef(onRun);
   const submitRef = useRef(onSubmit);
+  const [editorMounted, setEditorMounted] = useState(false);
+  const [useBasicEditor, setUseBasicEditor] = useState(false);
 
   useEffect(() => {
     runRef.current = onRun;
     submitRef.current = onSubmit;
   }, [onRun, onSubmit]);
+
+  useEffect(() => {
+    if (editorMounted) return;
+    const timeout = window.setTimeout(() => setUseBasicEditor(true), 4_000);
+    return () => window.clearTimeout(timeout);
+  }, [editorMounted]);
 
   const defineThemes: BeforeMount = useCallback((monaco) => {
     monaco.editor.defineTheme("llc-code-dark", {
@@ -153,6 +167,7 @@ export function MonacoCodeEditor({
   }, []);
 
   const handleMount: OnMount = useCallback((mountedEditor, monaco) => {
+    setEditorMounted(true);
     mountedEditor.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
       () => runRef.current(),
@@ -200,16 +215,32 @@ export function MonacoCodeEditor({
 
   return (
     <div className="monaco-editor-shell">
-      <MonacoEditor
-        beforeMount={defineThemes}
-        language={languageIds[language]}
-        onChange={(nextValue) => onChange(nextValue ?? "")}
-        onMount={handleMount}
-        options={options}
-        path={`llc-code://${languageIds[language]}/solution`}
-        theme={theme === "light" ? "llc-code-light" : "llc-code-dark"}
-        value={value}
-      />
+      {useBasicEditor ? (
+        <textarea
+          aria-label="Code editor"
+          className="basic-code-editor"
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (!(event.ctrlKey || event.metaKey) || event.key !== "Enter") return;
+            event.preventDefault();
+            if (event.shiftKey) onSubmit();
+            else onRun();
+          }}
+          spellCheck={false}
+          value={value}
+        />
+      ) : (
+        <MonacoEditor
+          beforeMount={defineThemes}
+          language={languageIds[language]}
+          onChange={(nextValue) => onChange(nextValue ?? "")}
+          onMount={handleMount}
+          options={options}
+          path={`llc-code://${languageIds[language]}/solution`}
+          theme={theme === "light" ? "llc-code-light" : "llc-code-dark"}
+          value={value}
+        />
+      )}
     </div>
   );
 }

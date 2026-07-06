@@ -37,6 +37,21 @@ test.describe("public learner paths", () => {
     await expect(preview).not.toHaveValue(firstInput);
   });
 
+  test("workspace opens an editable incomplete starter scaffold", async ({ page }) => {
+    await page.goto("/problems/two-sum");
+    const editor = page.locator(".monaco-editor");
+    await expect(editor).toBeVisible();
+    await expect(page.locator(".view-lines")).toContainText("TODO");
+    await expect(page.locator(".view-lines")).not.toContainText("complement");
+
+    await page.locator(".view-lines").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.type("print('editor works')");
+    await expect(page.locator(".view-lines")).toContainText("editor works");
+    await expect(page.getByRole("button", { name: "Run public tests" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Submit solution" })).toBeVisible();
+  });
+
   test("unknown routes render the designed recovery surface", async ({ page }) => {
     await page.goto("/this-route-does-not-exist");
     await expect(page.getByText("ROUTE NOT FOUND")).toBeVisible();
