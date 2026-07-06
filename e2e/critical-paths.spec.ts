@@ -39,17 +39,39 @@ test.describe("public learner paths", () => {
 
   test("workspace opens an editable incomplete starter scaffold", async ({ page }) => {
     await page.goto("/problems/two-sum");
-    const editor = page.locator(".monaco-editor");
-    await expect(editor).toBeVisible();
-    await expect(page.locator(".view-lines")).toContainText("TODO");
-    await expect(page.locator(".view-lines")).not.toContainText("complement");
+    const editorSurface = page.locator(".monaco-editor, .basic-code-editor");
+    const basicEditor = page.locator(".basic-code-editor");
+    await expect(editorSurface).toBeVisible();
 
-    await page.locator(".view-lines").click();
-    await page.keyboard.press("Control+A");
-    await page.keyboard.type("print('editor works')");
-    await expect(page.locator(".view-lines")).toContainText("editor works");
+    if (await basicEditor.isVisible()) {
+      await expect(basicEditor).toHaveValue(/TODO/);
+      await expect(basicEditor).not.toHaveValue(/complement/);
+      await basicEditor.fill("print('editor works')");
+      await expect(basicEditor).toHaveValue("print('editor works')");
+    } else {
+      await expect(page.locator(".view-lines")).toContainText("TODO");
+      await expect(page.locator(".view-lines")).not.toContainText("complement");
+      await page.locator(".view-lines").click();
+      await page.keyboard.press("Control+A");
+      await page.keyboard.type("print('editor works')");
+      await expect(page.locator(".view-lines")).toContainText("editor works");
+    }
     await expect(page.getByRole("button", { name: "Run public tests" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Submit solution" })).toBeVisible();
+  });
+
+  test("roadmaps connect structured paths to real problem workspaces", async ({ page }) => {
+    await page.goto("/roadmaps");
+    await expect(page.getByRole("heading", { name: /Learn patterns/ })).toBeVisible();
+    await expect(page.locator('a[href="/roadmaps/programming-foundations"]')).toBeVisible();
+
+    await page.locator('a[href="/roadmaps/programming-foundations"]').click();
+    await expect(page.getByRole("heading", { name: "Programming foundations" })).toBeVisible();
+    const firstNode = page.locator(".roadmap-node").filter({ hasText: "Fizz Buzz" });
+    await expect(firstNode).toBeVisible();
+    await firstNode.getByRole("link", { name: "SOLVE →", exact: true }).click();
+    await expect(page).toHaveURL(/\/problems\/fizz-buzz$/);
+    await expect(page.locator(".problem-heading-row h1")).toHaveText("Fizz Buzz");
   });
 
   test("unknown routes render the designed recovery surface", async ({ page }) => {

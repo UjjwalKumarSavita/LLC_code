@@ -15,12 +15,13 @@ asset is required.
 - 200 language templates and 200 judge cases
 - 25 reviewed six-section editorials
 - 10 interactive algorithm visualizers
-- Monaco code editor with persistent drafts and preferences
+- 4 guided roadmaps with live account progress and 28 mapped problem nodes
+- Monaco code editor with persistent drafts, preferences, and a no-stall fallback
 - Account-owned progress, submission history, and diagnostics
 - Problem and editorial admin review workflows
 - Self-hosted PostgreSQL, Redis/BullMQ, Moby, and Piston
 - 640/640 catalogue reference executions verified
-- 22 backend tests and 10 critical browser checks passing
+- 24 backend tests and 12 public desktop/mobile browser checks passing
 
 ## Fast start on this machine
 
@@ -68,12 +69,12 @@ The setup command generates database, JWT, and worker secrets inside ignored
 
 1. Open the landing page and switch between pure-black and pure-white themes.
 2. Register a learner account and browse the 50-problem catalogue.
-3. Open **Two Sum**, inspect its full editorial and five-step visualizer.
-4. Run or submit code in one of the four supported languages.
-5. Show the real verdict, safe diagnostics, submission archive, and dashboard.
-6. Sign in with the local administrator created during setup.
-7. Open **Problem CMS** to demonstrate draft/review/publish controls.
-8. Open **Editorial CMS** to show 25/50 reviewed coverage and the authoring flow.
+3. Open **Roadmaps** and follow a structured path into a real problem workspace.
+4. Open **Two Sum**, inspect its full editorial and five-step visualizer.
+5. Write code, run public tests, then submit against protected hidden tests.
+6. Show the real verdict, safe diagnostics, submission archive, and dashboard.
+7. Sign in with the local administrator created during setup.
+8. Open the Problem and Editorial CMS review/publish workflows.
 
 ## Architecture
 

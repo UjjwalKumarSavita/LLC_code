@@ -235,7 +235,7 @@ export function LandingExperience() {
         <nav className={menuOpen ? "nav-links is-open" : "nav-links"} aria-label="Main navigation">
           <a href="#method">Method</a>
           <a href="#visualizer">Visualizer</a>
-          <a href="#roadmap">Roadmaps</a>
+          <Link href="/roadmaps">Roadmaps</Link>
           <Link href="/problems">Problems</Link>
         </nav>
 
@@ -430,7 +430,7 @@ export function LandingExperience() {
               Structured paths connect concepts to practice, so progress feels
               deliberate instead of random.
             </p>
-            <MagneticButton className="button-secondary" onClick={openProblems}>
+            <MagneticButton className="button-secondary" onClick={() => window.location.assign("/roadmaps")}>
               Explore roadmaps <ArrowIcon />
             </MagneticButton>
           </div>
@@ -450,7 +450,7 @@ export function LandingExperience() {
                 <div className="roadmap-progress">
                   <i style={{ width: `${[88, 62, 34, 8][index]}%` }} />
                 </div>
-                <button aria-label={`Open ${title}`} onClick={openProblems} type="button"><ArrowIcon /></button>
+                <button aria-label={`Open ${title}`} onClick={() => window.location.assign("/roadmaps")} type="button"><ArrowIcon /></button>
               </article>
             ))}
           </div>
