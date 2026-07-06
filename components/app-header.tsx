@@ -47,10 +47,10 @@ export function AppHeader({ active = "" }: { active?: string }) {
           <span className="theme-icon theme-icon-sun"><SunIcon /></span>
           <span className="theme-icon theme-icon-moon"><MoonIcon /></span>
         </button>
-        <button className="app-profile" type="button">
+        <Link aria-label="Open dashboard" className="app-profile" href="/dashboard">
           <span>UD</span>
           <small>LEVEL 01</small>
-        </button>
+        </Link>
         <button
           aria-expanded={open}
           aria-label="Toggle menu"

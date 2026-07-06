@@ -72,9 +72,11 @@ function useReveal() {
 function MagneticButton({
   children,
   className = "",
+  onClick,
 }: {
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
 
@@ -95,6 +97,7 @@ function MagneticButton({
   return (
     <button
       className={`button ${className}`}
+      onClick={onClick}
       onPointerLeave={reset}
       onPointerMove={move}
       ref={ref}
@@ -176,7 +179,31 @@ function CodeStage() {
 
 export function LandingExperience() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [demoStep, setDemoStep] = useState(0);
+  const [demoPlaying, setDemoPlaying] = useState(false);
   useReveal();
+
+  useEffect(() => {
+    if (!demoPlaying) return;
+    const interval = window.setInterval(() => {
+      setDemoStep((step) => {
+        if (step >= 6) {
+          setDemoPlaying(false);
+          return 6;
+        }
+        return step + 1;
+      });
+    }, 700);
+    return () => window.clearInterval(interval);
+  }, [demoPlaying]);
+
+  const openProblems = () => {
+    window.location.assign("/problems");
+  };
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const toggleTheme = () => {
     const nextTheme =
@@ -254,10 +281,10 @@ export function LandingExperience() {
             into a mental model you can actually keep.
           </p>
           <div className="hero-actions">
-            <MagneticButton className="button-primary">
+            <MagneticButton className="button-primary" onClick={openProblems}>
               Start solving <ArrowIcon />
             </MagneticButton>
-            <MagneticButton className="button-secondary">
+            <MagneticButton className="button-secondary" onClick={() => scrollTo("visualizer")}>
               Watch the system <PlayIcon />
             </MagneticButton>
           </div>
@@ -337,7 +364,7 @@ export function LandingExperience() {
             <li><CheckIcon /> Inspect live variables</li>
             <li><CheckIcon /> Match code to movement</li>
           </ul>
-          <MagneticButton className="button-invert">
+          <MagneticButton className="button-invert" onClick={() => scrollTo("visualizer")}>
             Open visualizer <ArrowIcon />
           </MagneticButton>
         </div>
@@ -345,7 +372,7 @@ export function LandingExperience() {
         <div className="visualizer-demo" data-reveal>
           <div className="demo-toolbar">
             <span>BINARY_SEARCH.LAB</span>
-            <span>STEP 04 / 07</span>
+            <span>STEP {String(demoStep + 1).padStart(2, "0")} / 07</span>
           </div>
           <div className="search-array">
             {[3, 8, 12, 17, 24, 31, 46].map((value, index) => (
@@ -372,10 +399,20 @@ export function LandingExperience() {
             </div>
           </div>
           <div className="demo-controls">
-            <button aria-label="Previous step" type="button">←</button>
-            <button aria-label="Play visualization" className="demo-play" type="button"><PlayIcon /></button>
-            <button aria-label="Next step" type="button">→</button>
-            <div className="timeline"><i /></div>
+            <button aria-label="Previous step" disabled={demoStep === 0} onClick={() => setDemoStep((step) => Math.max(0, step - 1))} type="button">←</button>
+            <button
+              aria-label={demoPlaying ? "Pause visualization" : "Play visualization"}
+              className="demo-play"
+              onClick={() => {
+                if (demoStep === 6) setDemoStep(0);
+                setDemoPlaying((playing) => !playing);
+              }}
+              type="button"
+            >
+              {demoPlaying ? <PauseIcon /> : <PlayIcon />}
+            </button>
+            <button aria-label="Next step" disabled={demoStep === 6} onClick={() => setDemoStep((step) => Math.min(6, step + 1))} type="button">→</button>
+            <div className="timeline"><i style={{ width: `${((demoStep + 1) / 7) * 100}%` }} /></div>
             <span>1.0×</span>
           </div>
         </div>
@@ -393,7 +430,7 @@ export function LandingExperience() {
               Structured paths connect concepts to practice, so progress feels
               deliberate instead of random.
             </p>
-            <MagneticButton className="button-secondary">
+            <MagneticButton className="button-secondary" onClick={openProblems}>
               Explore roadmaps <ArrowIcon />
             </MagneticButton>
           </div>
@@ -413,7 +450,7 @@ export function LandingExperience() {
                 <div className="roadmap-progress">
                   <i style={{ width: `${[88, 62, 34, 8][index]}%` }} />
                 </div>
-                <button aria-label={`Open ${title}`} type="button"><ArrowIcon /></button>
+                <button aria-label={`Open ${title}`} onClick={openProblems} type="button"><ArrowIcon /></button>
               </article>
             ))}
           </div>
@@ -449,8 +486,8 @@ export function LandingExperience() {
                 <div className="editor-tabs"><span>solution.py</span><span>Python 3⌄</span></div>
                 <pre><b>class</b> Solution:<br />  <b>def</b> twoSum(self, nums, target):<br />    seen = {"{}"}<br />    <b>for</b> i, n <b>in</b> enumerate(nums):<br />      diff = target - n<br />      <b>if</b> diff <b>in</b> seen:<br />        <b>return</b> [seen[diff], i]</pre>
                 <div className="editor-actions">
-                  <button type="button">Run</button>
-                  <button type="button">Submit solution</button>
+                  <button onClick={() => window.location.assign("/problems/two-sum")} type="button">Run</button>
+                  <button onClick={() => window.location.assign("/problems/two-sum")} type="button">Submit solution</button>
                 </div>
               </div>
             </div>
@@ -463,7 +500,7 @@ export function LandingExperience() {
         <div className="closing-copy" data-reveal>
           <span>READY WHEN YOU ARE.</span>
           <h2>Your next breakthrough<br />starts with one problem.</h2>
-          <MagneticButton className="button-closing">
+          <MagneticButton className="button-closing" onClick={openProblems}>
             Enter LLC_code <ArrowIcon />
           </MagneticButton>
         </div>
@@ -474,9 +511,9 @@ export function LandingExperience() {
         <a className="brand" href="#top"><BrandMark /><span>LLC_code</span></a>
         <p>See the logic. Shape the solution.</p>
         <div>
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-          <a href="#">GitHub</a>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+          <a href="https://github.com/UjjwalKumarSavita/LLC_code" rel="noreferrer" target="_blank">GitHub</a>
         </div>
         <span>© 2026 LLC_code</span>
       </footer>

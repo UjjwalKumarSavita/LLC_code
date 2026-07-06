@@ -88,6 +88,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   const [language, setLanguage] = useState<Language>("Python 3");
   const [code, setCode] = useState(problem.starterCode["Python 3"] ?? "");
   const [customInput, setCustomInput] = useState(problem.examples[0]?.input ?? "");
+  const [activeExample, setActiveExample] = useState(0);
   const [result, setResult] = useState<SubmissionSummary | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [history, setHistory] = useState<SubmissionSummary[]>([]);
@@ -275,7 +276,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
             <span className="theme-icon theme-icon-sun"><SunIcon /></span>
             <span className="theme-icon theme-icon-moon"><MoonIcon /></span>
           </button>
-          <button className="solver-profile" type="button">UD</button>
+          <Link aria-label="Open dashboard" className="solver-profile" href="/dashboard">UD</Link>
         </div>
       </header>
 
@@ -548,10 +549,22 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
               {consoleTab === "Test cases" && (
                 <div className="testcase-editor">
                   <div className="testcase-pills">
-                    {problem.examples.map((_, index) => <button key={index} type="button">Case {index + 1}</button>)}
-                    <button type="button">+</button>
+                    {problem.examples.map((example, index) => (
+                      <button
+                        aria-pressed={activeExample === index}
+                        className={activeExample === index ? "is-active" : ""}
+                        key={index}
+                        onClick={() => {
+                          setActiveExample(index);
+                          setCustomInput(example.input);
+                        }}
+                        type="button"
+                      >
+                        Case {index + 1}
+                      </button>
+                    ))}
                   </div>
-                  <label><span>INPUT</span><textarea onChange={(event) => setCustomInput(event.target.value)} value={customInput} /></label>
+                  <label><span>SAMPLE INPUT PREVIEW</span><textarea readOnly value={customInput} /></label>
                 </div>
               )}
               {consoleTab === "Result" && (

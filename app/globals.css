@@ -3754,6 +3754,7 @@ svg {
   height: 40px;
   letter-spacing: .08em;
   padding: 0 14px 0 5px;
+  text-decoration: none;
 }
 
 .app-profile > span {
@@ -5160,9 +5161,42 @@ svg {
   text-transform: uppercase;
 }
 
-.testcase-pills button:first-child {
+.testcase-pills button.is-active {
   background: var(--ink);
   color: var(--paper);
+}
+
+.legal-page {
+  margin: 0 auto;
+  max-width: 780px;
+  min-height: 100vh;
+  padding: clamp(60px, 10vw, 140px) var(--page-gutter);
+}
+
+.legal-page > a,
+.legal-page > span {
+  color: var(--muted);
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .12em;
+  margin-bottom: 38px;
+  text-decoration: none;
+}
+
+.legal-page h1 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(44px, 7vw, 82px);
+  letter-spacing: -.06em;
+  line-height: .94;
+  margin: 0 0 44px;
+}
+
+.legal-page p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.8;
+  margin: 0 0 22px;
 }
 
 .testcase-editor label {

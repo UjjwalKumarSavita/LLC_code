@@ -4,9 +4,9 @@ test.describe("public learner paths", () => {
   test("landing, problem discovery, and auth protection remain available", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/LLC_code/);
-    await expect(page.getByRole("button", { name: "Start solving" })).toBeVisible();
+    await page.getByRole("button", { name: "Start solving" }).click();
+    await expect(page).toHaveURL(/\/problems$/);
 
-    await page.goto("/problems");
     await expect(page.getByRole("heading", { name: /Choose the next/ })).toBeVisible();
     await expect(page.getByText(/5\d RESULTS/)).toHaveCount(1);
     await page.getByLabel("Search problems").fill("Two Sum");
@@ -15,6 +15,26 @@ test.describe("public learner paths", () => {
     await page.goto("/submissions");
     await expect(page).toHaveURL(/\/login\?next=%2Fsubmissions|\/login\?next=\/submissions/);
     await expect(page.getByRole("heading", { name: "Log in to LLC_code" })).toBeVisible();
+  });
+
+  test("landing controls and legal links perform real actions", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Watch the system" }).click();
+    await expect(page.locator("#visualizer")).toBeInViewport();
+
+    await page.getByRole("button", { name: "Next step" }).click();
+    await expect(page.getByText("STEP 02 / 07")).toBeVisible();
+
+    await page.getByRole("link", { name: "Privacy" }).click();
+    await expect(page.getByRole("heading", { name: "Your code stays under your control." })).toBeVisible();
+  });
+
+  test("workspace sample tabs update the visible sample input", async ({ page }) => {
+    await page.goto("/problems/two-sum");
+    const preview = page.getByLabel("SAMPLE INPUT PREVIEW");
+    const firstInput = await preview.inputValue();
+    await page.getByRole("button", { name: "Case 2" }).click();
+    await expect(preview).not.toHaveValue(firstInput);
   });
 
   test("unknown routes render the designed recovery surface", async ({ page }) => {
