@@ -21,6 +21,8 @@ Next.js web :3000  --->  NestJS API :4000  ---> PostgreSQL :5432
 ```
 
 - Expose only the HTTPS reverse proxy publicly.
+- Use a trusted HTTPS certificate, such as a free Let's Encrypt certificate,
+  for any non-local deployment.
 - Do not expose PostgreSQL, Redis, or Piston to the internet.
 - Run Piston on a separate VM or host when serving untrusted users.
 - The API and worker must never execute submitted source directly.
@@ -135,7 +137,7 @@ Before routing traffic:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:4000/api/health
-Invoke-WebRequest http://127.0.0.1:3000/login -UseBasicParsing
+Invoke-WebRequest https://your-domain.example/login -UseBasicParsing
 ```
 
 Then verify:
@@ -182,4 +184,3 @@ The platform code is MVP-ready, but public launch still requires:
 - a sandbox isolation review on the actual production host;
 - backup restoration and load tests;
 - terms and privacy pages appropriate to the deployment jurisdiction.
-

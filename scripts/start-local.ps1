@@ -6,11 +6,27 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+Add-Type @"
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+public class LlcTrustLocalCertificatesPolicy : ICertificatePolicy {
+  public bool CheckValidationResult(
+    ServicePoint srvPoint,
+    X509Certificate certificate,
+    WebRequest request,
+    int certificateProblem
+  ) { return true; }
+}
+"@ -ErrorAction SilentlyContinue
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object LlcTrustLocalCertificatesPolicy
 $root = Split-Path -Parent $PSScriptRoot
 $apiRoot = Join-Path $root "services\api"
 $runtime = Join-Path $root ".local-runtime"
+$certDir = Join-Path $runtime "certs"
 $distro = "LLC-Docker"
 New-Item -ItemType Directory -Force -Path $runtime | Out-Null
+New-Item -ItemType Directory -Force -Path $certDir | Out-Null
 
 function New-SecureHex([int]$Bytes = 32) {
   $buffer = New-Object byte[] $Bytes
@@ -27,6 +43,74 @@ function Read-DotEnv([string]$Path) {
     }
   }
   return $values
+}
+
+function Set-DotEnvValue([string]$Path, [string]$Key, [string]$Value) {
+  $lines = if (Test-Path $Path) { @(Get-Content -LiteralPath $Path) } else { @() }
+  $found = $false
+  $updated = $lines | ForEach-Object {
+    if ($_ -match "^\s*$([regex]::Escape($Key))=") {
+      $found = $true
+      "$Key=$Value"
+    } else {
+      $_
+    }
+  }
+  if (-not $found) { $updated += "$Key=$Value" }
+  $updated | Set-Content -LiteralPath $Path -Encoding UTF8
+}
+
+function Ensure-LocalHttpsCertificate {
+  $pfxPath = Join-Path $certDir "localhost.pfx"
+  $passPath = Join-Path $certDir "localhost.pass"
+  if ((Test-Path $pfxPath) -and (Test-Path $passPath)) {
+    return
+  }
+  if (Test-Path $pfxPath) { Remove-Item -LiteralPath $pfxPath -Force }
+  if (Test-Path $passPath) { Remove-Item -LiteralPath $passPath -Force }
+
+  $certCommand = Get-Command New-SelfSignedCertificate -ErrorAction SilentlyContinue
+  if (-not $certCommand) {
+    throw "New-SelfSignedCertificate is unavailable. Install a local certificate manually or use a newer Windows PowerShell."
+  }
+
+  $passphrase = New-SecureHex 24
+  $securePassword = ConvertTo-SecureString -String $passphrase -Force -AsPlainText
+  $cert = New-SelfSignedCertificate `
+    -DnsName "localhost" `
+    -CertStoreLocation "Cert:\CurrentUser\My" `
+    -FriendlyName "LLC_code local HTTPS" `
+    -KeyAlgorithm RSA `
+    -KeyLength 2048 `
+    -KeyExportPolicy Exportable `
+    -NotAfter (Get-Date).AddYears(2)
+
+  Export-PfxCertificate `
+    -Cert $cert `
+    -FilePath $pfxPath `
+    -Password $securePassword | Out-Null
+
+  $cerPath = Join-Path $certDir "localhost.cer"
+  Export-Certificate -Cert $cert -FilePath $cerPath | Out-Null
+  Set-Content -LiteralPath $passPath -Value $passphrase -Encoding UTF8
+
+  try {
+    $trustProcess = Start-Process `
+      -FilePath "certutil.exe" `
+      -ArgumentList @("-user", "-addstore", "Root", $cerPath) `
+      -WindowStyle Hidden `
+      -PassThru
+    if (-not $trustProcess.WaitForExit(10000)) {
+      Stop-Process -Id $trustProcess.Id -Force -ErrorAction SilentlyContinue
+      throw "certutil trust step timed out"
+    }
+    if ($trustProcess.ExitCode -ne 0) {
+      throw "certutil exited with $($trustProcess.ExitCode)"
+    }
+    Write-Host "Generated and trusted a local HTTPS certificate for https://localhost:3000." -ForegroundColor Green
+  } catch {
+    Write-Host "Generated a local HTTPS certificate. If the browser warns, import .local-runtime\certs\localhost.cer into Current User > Trusted Root Certification Authorities." -ForegroundColor Yellow
+  }
 }
 
 $composeEnv = Join-Path $root ".env"
@@ -57,7 +141,7 @@ if (-not (Test-Path $apiEnv)) {
   @(
     "NODE_ENV=development"
     "PORT=4000"
-    "WEB_ORIGIN=http://localhost:3000"
+    "WEB_ORIGIN=https://localhost:3000"
     "DATABASE_URL=postgresql://llc_code:$databasePassword@127.0.0.1:55432/llc_code?schema=public"
     "REDIS_URL=redis://127.0.0.1:6379"
     "JWT_ACCESS_SECRET=$(New-SecureHex 32)"
@@ -77,6 +161,7 @@ if (-not (Test-Path $webEnv)) {
   "API_BASE_URL=http://127.0.0.1:4000/api" |
     Set-Content -LiteralPath $webEnv -Encoding UTF8
 }
+Set-DotEnvValue $apiEnv "WEB_ORIGIN" "https://localhost:3000"
 
 function Assert-Command([string]$Name) {
   if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
@@ -138,6 +223,7 @@ function Wait-Http([string]$Name, [string]$Url, [int]$Seconds = 45) {
 Assert-Command "node.exe"
 Assert-Command "npm.cmd"
 Assert-Command "wsl.exe"
+Ensure-LocalHttpsCertificate
 
 if (-not (Test-ProcessFile "wsl-keeper")) {
   Start-TrackedProcess `
@@ -203,7 +289,8 @@ if ($Setup) {
 $apiEntry = Join-Path $apiRoot "dist\main.js"
 $workerEntry = Join-Path $apiRoot "dist\judge-worker\main.js"
 $nextEntry = Join-Path $root "node_modules\next\dist\bin\next"
-foreach ($entry in @($apiEntry, $workerEntry, $nextEntry)) {
+$httpsProxyEntry = Join-Path $root "scripts\local-https-proxy.mjs"
+foreach ($entry in @($apiEntry, $workerEntry, $nextEntry, $httpsProxyEntry)) {
   if (-not (Test-Path $entry)) {
     throw "Missing build output '$entry'. Run .\scripts\start-local.ps1 -Setup first."
   }
@@ -213,9 +300,27 @@ $node = (Get-Command node.exe).Source
 Start-TrackedProcess "api" $node @($apiEntry) $apiRoot
 Wait-Http "API" "http://127.0.0.1:4000/api/health"
 Start-TrackedProcess "judge-worker" $node @($workerEntry) $apiRoot
-Start-TrackedProcess "web" $node @($nextEntry, "start", "-p", "3000") $root
-Wait-Http "Web" "http://localhost:3000/login"
+$env:LLC_HTTPS_HOST = "127.0.0.1"
+$env:LLC_HTTPS_PORT = "3000"
+$env:LLC_WEB_TARGET_HOST = "127.0.0.1"
+$env:LLC_WEB_TARGET_PORT = "3001"
+$env:LLC_HTTPS_PFX = Join-Path $certDir "localhost.pfx"
+$env:LLC_HTTPS_PFX_PASSPHRASE = (Get-Content -LiteralPath (Join-Path $certDir "localhost.pass") -Raw).Trim()
+try {
+  Start-TrackedProcess "web" $node @($nextEntry, "start", "-H", "127.0.0.1", "-p", "3001") $root
+  Wait-Http "Web internal" "http://127.0.0.1:3001/login"
+  Start-TrackedProcess "web-https" $node @($httpsProxyEntry) $root
+} finally {
+  Remove-Item Env:LLC_HTTPS_HOST -ErrorAction SilentlyContinue
+  Remove-Item Env:LLC_HTTPS_PORT -ErrorAction SilentlyContinue
+  Remove-Item Env:LLC_WEB_TARGET_HOST -ErrorAction SilentlyContinue
+  Remove-Item Env:LLC_WEB_TARGET_PORT -ErrorAction SilentlyContinue
+  Remove-Item Env:LLC_HTTPS_PFX -ErrorAction SilentlyContinue
+  Remove-Item Env:LLC_HTTPS_PFX_PASSPHRASE -ErrorAction SilentlyContinue
+}
+Wait-Http "Web HTTPS" "https://localhost:3000/login"
 
 Write-Host ""
-Write-Host "LLC_code is ready: http://localhost:3000" -ForegroundColor Cyan
+Write-Host "LLC_code is ready: https://localhost:3000" -ForegroundColor Cyan
+Write-Host "The HTTP server on 127.0.0.1:3001 is internal-only behind the local TLS proxy." -ForegroundColor DarkGray
 Write-Host "Run .\scripts\check-local.ps1 for a health report."

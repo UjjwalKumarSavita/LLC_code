@@ -22,7 +22,7 @@ asset is required.
 - Problem and editorial admin review workflows
 - Self-hosted PostgreSQL, Redis/BullMQ, Moby, and Piston
 - 640/640 catalogue reference executions verified
-- 24 backend tests and 12 public desktop/mobile browser checks passing
+- 25 backend tests and 14 public desktop/mobile browser checks passing
 
 ## Fast start on this machine
 
@@ -42,7 +42,20 @@ Later starts are one command:
 scripts\start-local.cmd
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [https://localhost:3000](https://localhost:3000).
+
+Local HTTPS is free and self-hosted. `scripts\start-local.cmd` creates a
+localhost-only certificate in ignored `.local-runtime/certs/` and serves the
+browser through a TLS proxy. If Windows asks whether to trust the certificate,
+accept it only for this local LLC_code certificate; otherwise the browser may
+show a one-time self-signed-certificate warning.
+
+If the browser still warns, run this once and approve the Windows certificate
+prompt:
+
+```powershell
+scripts\trust-local-cert.cmd
+```
 
 Check every local service:
 
@@ -63,8 +76,9 @@ scripts\stop-local.cmd -Infrastructure
 ```
 
 Runtime logs and PID files are stored in ignored `.local-runtime/`.
-The setup command generates database, JWT, and worker secrets inside ignored
-`.env` files. Only sanitized `.env.example` templates belong in Git.
+The setup command generates database, JWT, worker secrets, and local TLS
+certificate material inside ignored `.env` and `.local-runtime/` files. Only
+sanitized `.env.example` templates belong in Git.
 
 ## Three-minute demo
 

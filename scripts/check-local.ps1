@@ -1,6 +1,21 @@
 $ErrorActionPreference = "Continue"
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+Add-Type @"
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+public class LlcTrustLocalCertificatesPolicy : ICertificatePolicy {
+  public bool CheckValidationResult(
+    ServicePoint srvPoint,
+    X509Certificate certificate,
+    WebRequest request,
+    int certificateProblem
+  ) { return true; }
+}
+"@ -ErrorAction SilentlyContinue
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object LlcTrustLocalCertificatesPolicy
 $checks = @(
-  @{ Name = "Web"; Url = "http://localhost:3000/login" },
+  @{ Name = "Web HTTPS"; Url = "https://localhost:3000/login" },
+  @{ Name = "Web internal"; Url = "http://127.0.0.1:3001/login" },
   @{ Name = "API"; Url = "http://127.0.0.1:4000/api/health" },
   @{ Name = "Piston"; Url = "http://127.0.0.1:2000/api/v2/runtimes" }
 )

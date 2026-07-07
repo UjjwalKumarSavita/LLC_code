@@ -4,7 +4,7 @@ param([switch]$Infrastructure)
 $root = Split-Path -Parent $PSScriptRoot
 $runtime = Join-Path $root ".local-runtime"
 
-foreach ($name in @("web", "judge-worker", "api")) {
+foreach ($name in @("web-https", "web", "judge-worker", "api")) {
   $file = Join-Path $runtime "$name.pid"
   if (Test-Path $file) {
     $savedPid = [int](Get-Content $file -Raw)

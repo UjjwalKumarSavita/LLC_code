@@ -6,7 +6,7 @@ describe("validateEnvironment", () => {
     REDIS_URL: "redis://localhost:6379",
     JWT_ACCESS_SECRET: "access-secret-that-is-longer-than-32-characters",
     JWT_REFRESH_SECRET: "refresh-secret-that-is-longer-than-32-characters",
-    WEB_ORIGIN: "http://localhost:3000"
+    WEB_ORIGIN: "https://localhost:3000"
   };
 
   it("applies safe defaults", () => {
