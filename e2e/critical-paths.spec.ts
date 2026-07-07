@@ -60,6 +60,16 @@ test.describe("public learner paths", () => {
     await expect(page.getByRole("button", { name: "Submit solution" })).toBeVisible();
   });
 
+  test("published editorial exposes language-specific reference solutions", async ({ page }) => {
+    await page.goto("/problems/two-sum");
+    await page.getByRole("tab", { name: "Editorial" }).click();
+    await expect(page.getByText("05 / REFERENCE IMPLEMENTATION")).toBeVisible();
+    await expect(page.getByText("Python 3 solution")).toBeVisible();
+    await page.getByRole("button", { name: "JavaScript" }).click();
+    await expect(page.getByText("JavaScript solution")).toBeVisible();
+    await expect(page.getByText("const values = require")).toBeVisible();
+  });
+
   test("roadmaps connect structured paths to real problem workspaces", async ({ page }) => {
     await page.goto("/roadmaps");
     await expect(page.getByRole("heading", { name: /Learn patterns/ })).toBeVisible();
@@ -204,7 +214,7 @@ test.describe("admin CMS critical path", () => {
     expect(loginResponse.ok()).toBeTruthy();
     await page.goto("/admin/editorials");
     await expect(page.getByRole("heading", { name: "Editorial CMS" })).toBeVisible();
-    await expect(page.getByText("25 / 50")).toBeVisible();
+    await expect(page.getByText("50 / 50")).toBeVisible();
 
     await page.getByLabel("Search editorial problems").fill("Power of Two");
     const row = page.getByRole("row").filter({ hasText: "Power of Two" });

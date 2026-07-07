@@ -2623,13 +2623,16 @@ svg {
 .ambient-canvas,
 .hero-grid {
   inset: 0;
-  pointer-events: none;
+  pointer-events: none !important;
   position: absolute;
   width: 100%;
+  z-index: 0;
 }
 
 .ambient-canvas {
   height: 100%;
+  max-height: 100svh;
+  max-width: 100vw;
   opacity: .85;
 }
 
@@ -5094,6 +5097,67 @@ svg {
 
 .editorial-summary-grid .complexity-box { margin-top: 0; }
 
+.editorial-solution-card {
+  margin-top: 32px;
+}
+
+.editorial-solution-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.editorial-solution-heading p {
+  margin: 6px 0 0;
+}
+
+.editorial-solution-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 180px;
+}
+
+.editorial-solution-tabs button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  cursor: pointer;
+  font: 9px "JetBrains Mono", monospace;
+  letter-spacing: .08em;
+  padding: 9px 11px;
+  text-transform: uppercase;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.editorial-solution-tabs button:hover,
+.editorial-solution-tabs button.is-active {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
+  transform: translateY(-1px);
+}
+
+.editorial-solution-card pre {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--foreground) 7%, transparent), transparent 38%),
+    var(--surface-raised);
+  border: 1px solid var(--line-strong);
+  color: var(--foreground);
+  font: 12px/1.7 "JetBrains Mono", monospace;
+  margin: 22px 0 0;
+  max-height: 420px;
+  overflow: auto;
+  padding: 22px;
+  white-space: pre;
+}
+
 .editorial-mistakes {
   border: 1px solid var(--line-strong);
   padding: 24px;
@@ -5130,6 +5194,13 @@ svg {
 
 @media (max-width: 680px) {
   .editorial-summary-grid { grid-template-columns: 1fr; }
+  .editorial-solution-heading {
+    flex-direction: column;
+  }
+  .editorial-solution-tabs {
+    justify-content: flex-start;
+    min-width: 0;
+  }
 }
 
 .complexity-box {

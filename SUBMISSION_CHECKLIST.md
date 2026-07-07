@@ -5,10 +5,10 @@
 - [x] 50 published judge-ready problems
 - [x] Four-language isolated execution
 - [x] Problem and editorial admin CMS
-- [x] 25 reviewed editorials and 10 visualizers
+- [x] 50 reviewed editorials, 200 reference solutions, and 10 visualizers
 - [x] Account progress and submission history
 - [x] Frontend lint and production build
-- [x] API lint, 22 tests, and production build
+- [x] API lint, 25 tests, and production build
 - [x] Desktop/mobile critical-path browser coverage
 - [x] One-command local start, stop, and health checks
 - [x] Git repository initialized with secrets and generated files ignored
@@ -31,12 +31,12 @@
 4. Run or submit a solution and show its real verdict.
 5. Submission history and progress dashboard.
 6. Problem CMS review workflow.
-7. Editorial CMS and 25/50 coverage.
+7. Editorial CMS, 50/50 coverage, and language-specific reference solutions.
 
 ## Honest remaining scope
 
 - Production cloud hosting is not configured; the submission is self-hosted.
-- Twenty-five catalogue problems still use the editorial in-review state.
+- Remaining non-visualized problems use the deliberate visualizer fallback.
 - Roadmaps, contests, mentor batches, AI tutoring, plagiarism detection,
   certificates, proctoring, and native mobile applications are post-MVP.
 - Payments are intentionally excluded because LLC_code is free-only.

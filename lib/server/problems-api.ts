@@ -42,6 +42,11 @@ type ApiProblemDetail = ApiProblemListItem & {
     dryRun: string | null;
     complexity: string | null;
     commonMistakes: string | null;
+    solutions?: Array<{
+      code: string;
+      explanation: string | null;
+      language: { slug: string };
+    }>;
   };
 };
 
@@ -160,6 +165,20 @@ export async function getPublicProblem(slug: string): Promise<Problem | null> {
       dryRun: item.editorial?.dryRun ?? "",
       complexity: item.editorial?.complexity ?? "",
       commonMistakes: item.editorial?.commonMistakes ?? "",
+      solutions:
+        item.editorial?.solutions
+          ?.map((solution) => {
+            const language = languageNames[solution.language.slug];
+            if (!language) return null;
+            return {
+              language,
+              code: solution.code,
+              explanation: solution.explanation ?? "",
+            };
+          })
+          .filter((solution): solution is NonNullable<typeof solution> =>
+            Boolean(solution),
+          ) ?? [],
     },
     starterCode,
     availableLanguages,
@@ -191,6 +210,7 @@ function listItemToProblem(item: ApiProblemListItem): Problem {
       dryRun: "",
       complexity: "",
       commonMistakes: "",
+      solutions: [],
     },
     starterCode: {},
     validationTokens: {},

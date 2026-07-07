@@ -87,6 +87,86 @@ const languages = [
   }
 ];
 
+type EditorialSolutionLanguage = "python" | "javascript" | "cpp" | "java";
+type EditorialSolutionTemplates = Record<EditorialSolutionLanguage, string>;
+
+const languageDisplayNames: Record<EditorialSolutionLanguage, string> = {
+  python: "Python",
+  javascript: "JavaScript",
+  cpp: "C++",
+  java: "Java"
+};
+
+const twoSumOfficialSolutions: EditorialSolutionTemplates = {
+  python: `import sys
+
+values = list(map(int, sys.stdin.read().split()))
+target, nums = values[0], values[1:]
+seen = {}
+
+for index, value in enumerate(nums):
+    need = target - value
+    if need in seen:
+        print(seen[need], index)
+        break
+    seen[value] = index`,
+  javascript: `const values = require("fs").readFileSync(0, "utf8").trim().split(/\\s+/).map(Number);
+const [target, ...nums] = values;
+const seen = new Map();
+
+for (let index = 0; index < nums.length; index += 1) {
+  const value = nums[index];
+  const need = target - value;
+  if (seen.has(need)) {
+    console.log(seen.get(need), index);
+    break;
+  }
+  seen.set(value, index);
+}`,
+  cpp: `#include <iostream>
+#include <unordered_map>
+#include <vector>
+using namespace std;
+
+int main() {
+    long long target, value;
+    cin >> target;
+    vector<long long> nums;
+    while (cin >> value) nums.push_back(value);
+
+    unordered_map<long long, int> seen;
+    for (int index = 0; index < (int) nums.size(); index++) {
+        long long need = target - nums[index];
+        if (seen.count(need)) {
+            cout << seen[need] << ' ' << index << '\\n';
+            return 0;
+        }
+        seen[nums[index]] = index;
+    }
+}`,
+  java: `import java.util.*;
+
+class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        int target = input.nextInt();
+        List<Integer> nums = new ArrayList<>();
+        while (input.hasNextInt()) nums.add(input.nextInt());
+
+        Map<Integer, Integer> seen = new HashMap<>();
+        for (int index = 0; index < nums.size(); index++) {
+            int value = nums.get(index);
+            int need = target - value;
+            if (seen.containsKey(need)) {
+                System.out.println(seen.get(need) + " " + index);
+                return;
+            }
+            seen.put(value, index);
+        }
+    }
+}`
+};
+
 function starterCodeFor(languageSlug: string) {
   const templates: Record<string, string> = {
     python: `import sys
@@ -199,6 +279,80 @@ async function main() {
     await seedJudgeProblem(problem, contentUser.id, languageIds);
   }
   await seedCoreEditorials(prisma, contentUser.id);
+  await seedEditorialSolutions(languageIds);
+}
+
+async function seedEditorialSolutions(languageIds: Map<string, string>) {
+  const definitions = [
+    ...additionalJudgeProblems,
+    ...launchJudgeProblems,
+    ...catalogueBatchTwoProblems,
+    ...catalogueBatchThreeProblems,
+    ...catalogueBatchFourProblems
+  ];
+
+  const solutionSets = new Map<string, EditorialSolutionTemplates>([
+    ["two-sum", twoSumOfficialSolutions]
+  ]);
+
+  for (const definition of definitions) {
+    const extraTemplates =
+      judgeLanguageTemplates[definition.slug] ??
+      launchLanguageTemplates[definition.slug] ??
+      catalogueBatchTwoTemplates[definition.slug] ??
+      catalogueBatchThreeTemplates[definition.slug] ??
+      catalogueBatchFourTemplates[definition.slug];
+
+    if (!extraTemplates) {
+      throw new Error(`Missing editorial solution templates for ${definition.slug}`);
+    }
+
+    solutionSets.set(definition.slug, {
+      python: definition.python,
+      javascript: extraTemplates.javascript,
+      cpp: extraTemplates.cpp,
+      java: extraTemplates.java
+    });
+  }
+
+  for (const [problemSlug, solutions] of solutionSets) {
+    const problem = await prisma.problem.findUnique({
+      where: { slug: problemSlug },
+      select: {
+        title: true,
+        editorial: { select: { id: true } }
+      }
+    });
+    if (!problem?.editorial) {
+      throw new Error(`Published editorial missing before solution seed: ${problemSlug}`);
+    }
+
+    for (const languageSlug of Object.keys(solutions) as EditorialSolutionLanguage[]) {
+      const languageId = languageIds.get(languageSlug);
+      if (!languageId) {
+        throw new Error(`Missing language before editorial solution seed: ${languageSlug}`);
+      }
+
+      await prisma.editorialSolution.upsert({
+        where: {
+          editorialId_languageId: {
+            editorialId: problem.editorial.id,
+            languageId
+          }
+        },
+        create: {
+          editorialId: problem.editorial.id,
+          languageId,
+          code: solutions[languageSlug],
+          explanation: `${languageDisplayNames[languageSlug]} reference implementation for ${problem.title}. It follows the reviewed approach, reads stdin, prints stdout, and stays separate from hidden test data.`
+        },
+        update: {
+          code: solutions[languageSlug],
+          explanation: `${languageDisplayNames[languageSlug]} reference implementation for ${problem.title}. It follows the reviewed approach, reads stdin, prints stdout, and stays separate from hidden test data.`
+        }
+      });
+    }
+  }
 }
 
 async function seedJudgeProblem(

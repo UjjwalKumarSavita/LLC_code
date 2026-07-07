@@ -108,6 +108,9 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
     ? problem.availableLanguages
     : languages.filter((item) => Boolean(problem.starterCode[item]));
   const draftKey = `llc-code:draft:v2:${problem.slug}:${languageSlugs[language]}`;
+  const editorialSolution =
+    problem.editorial.solutions.find((solution) => solution.language === language) ??
+    problem.editorial.solutions[0];
 
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -333,6 +336,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
                       <a href="#editorial-baseline">02 Baseline</a>
                       <a href="#editorial-algorithm">03 Algorithm</a>
                       <a href="#editorial-dry-run">04 Dry run</a>
+                      {problem.editorial.solutions.length > 0 && <a href="#editorial-solution">05 Solution</a>}
                     </nav>
                     <article className="editorial-section" id="editorial-intuition">
                       <span>01 / CORE OBSERVATION</span>
@@ -358,6 +362,31 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
                       <div className="complexity-box"><span>COMPLEXITY</span><strong>{problem.editorial.complexity}</strong></div>
                       <div className="editorial-mistakes"><span>COMMON MISTAKES</span><p>{problem.editorial.commonMistakes}</p></div>
                     </div>
+                    {editorialSolution && (
+                      <article className="editorial-section editorial-solution-card" id="editorial-solution">
+                        <span>05 / REFERENCE IMPLEMENTATION</span>
+                        <div className="editorial-solution-heading">
+                          <div>
+                            <h3>{editorialSolution.language} solution</h3>
+                            <p>{editorialSolution.explanation}</p>
+                          </div>
+                          <div className="editorial-solution-tabs" aria-label="Reference solution languages">
+                            {problem.editorial.solutions.map((solution) => (
+                              <button
+                                aria-pressed={solution.language === language}
+                                className={solution.language === language ? "is-active" : ""}
+                                key={solution.language}
+                                onClick={() => selectLanguage(solution.language)}
+                                type="button"
+                              >
+                                {solution.language}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <pre><code>{editorialSolution.code}</code></pre>
+                      </article>
+                    )}
                   </>
                 ) : (
                   <div className="editorial-pending">

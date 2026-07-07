@@ -54,7 +54,14 @@ export class ProblemsService {
           include: { language: true },
           where: { language: { isActive: true } }
         },
-        editorial: true
+        editorial: {
+          include: {
+            solutions: {
+              include: { language: true },
+              orderBy: { language: { name: "asc" } }
+            }
+          }
+        }
       }
     });
     if (!problem) throw new NotFoundException("Problem not found");

@@ -32,6 +32,11 @@ export type Problem = {
     dryRun: string;
     complexity: string;
     commonMistakes: string;
+    solutions: Array<{
+      language: Language;
+      code: string;
+      explanation: string;
+    }>;
   };
   starterCode: Partial<Record<Language, string>>;
   availableLanguages?: Language[];

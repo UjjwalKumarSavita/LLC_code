@@ -136,27 +136,28 @@ Boyer-Moore cancellation, stable zero compaction, take-or-skip house robber
 dynamic programming, and lower-bound insertion search. Problems without a
 reviewed visualization retain a deliberate fallback.
 
-Twenty-five problems now have published, reviewed editorials stored in the
+All fifty problems now have published, reviewed editorials stored in the
 database. Each editorial includes intuition, a brute-force baseline, ordered
 optimized steps, a concrete dry run, complexity, and common mistakes. The
 learner workspace receives only published editorial records through the public
 problem API. The richer reader exposes every reviewed section with a compact
-section map, responsive summary cards, and an honest in-review state for
-problems whose editorials are not yet published.
+section map, responsive summary cards, and language-specific reference
+solutions that remain separate from learner starter code.
 
 Local Playwright regression uses the installed Chrome browser with no hosted
-service or subscription. Ten passing critical-path checks cover desktop/mobile
-problem discovery, authentication protection, designed route recovery,
-account-owned submission history and detail, interactive visualizer controls,
-published editorial delivery, a desktop problem CMS lifecycle, and a desktop
-editorial author-review-publish-learner-archive lifecycle. The two mobile
-duplicates of the destructive CMS lifecycles are intentionally skipped. The suite
-has caught and fixed a pre-hydration login submission path that could expose
-form values in the URL, a 20-item learner catalogue pagination ceiling, and a
-CMS session-response mismatch that redirected valid administrators.
+service or subscription. Sixteen passing critical-path checks cover
+desktop/mobile problem discovery, authentication protection, designed route
+recovery, problem workspaces, roadmap-to-workspace navigation, leaderboard
+safety, legal links, and language-specific editorial reference solutions.
+Credential-dependent admin/authenticated flows are skipped unless local E2E
+credentials are supplied. The suite has caught and fixed a pre-hydration login
+submission path that could expose form values in the URL, a 20-item learner
+catalogue pagination ceiling, a CMS session-response mismatch that redirected
+valid administrators, a rolling-response editorial shape crash, and a mobile
+canvas tap interception issue.
 
 Release regression currently passes frontend lint/build, backend lint/build,
-22 backend tests, 640/640 catalogue sandbox executions, 10 passing browser
+25 backend tests, 640/640 catalogue sandbox executions, 16 passing browser
 checks, API health checks, and a production dependency audit with zero known
 vulnerabilities. The free Moby daemon is held by a persistent hidden WSL host
 process; PostgreSQL and Redis are healthy, Piston exposes all four required
@@ -169,5 +170,5 @@ guards, publication completeness gates, audit records, and the public
 published-only boundary are enforced by the API.
 
 The richer learner editorial milestone is complete. The next milestone is
-finishing reviewed editorial coverage from 25 to all 50 problems and adding
-reviewed language-specific solution explanations to the editorial reader.
+remaining post-MVP scope such as contests, mentor batches, AI tutoring,
+plagiarism detection, certificates, proctoring, and native mobile applications.

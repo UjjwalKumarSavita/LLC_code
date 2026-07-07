@@ -13,7 +13,8 @@ asset is required.
 - 50 published, judge-ready problems
 - Python, JavaScript, C++, and Java execution
 - 200 language templates and 200 judge cases
-- 25 reviewed six-section editorials
+- 50 reviewed six-section editorials
+- 200 official editorial reference solutions, separated from learner starter code
 - 10 interactive algorithm visualizers
 - 4 guided roadmaps with live account progress and 28 mapped problem nodes
 - Monaco code editor with persistent drafts, preferences, and a no-stall fallback

@@ -42,8 +42,8 @@ export function AmbientCanvas() {
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = rect.width;
-      height = rect.height;
+      width = Math.min(Math.max(rect.width || window.innerWidth, 1), window.innerWidth * 1.5, 2400);
+      height = Math.min(Math.max(rect.height || window.innerHeight, 1), window.innerHeight * 1.5, 1600);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -122,5 +122,12 @@ export function AmbientCanvas() {
     };
   }, []);
 
-  return <canvas aria-hidden="true" className="ambient-canvas" ref={canvasRef} />;
+  return (
+    <canvas
+      aria-hidden="true"
+      className="ambient-canvas"
+      ref={canvasRef}
+      style={{ pointerEvents: "none" }}
+    />
+  );
 }
