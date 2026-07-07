@@ -28,6 +28,30 @@ export type ProgressSummary = {
     totalAttempts: number;
     pointsEarned: number;
   };
+  xp: {
+    totalXp: number;
+    level: number;
+    currentLevelXp: number;
+    nextLevelXp: number;
+    progressPercent: number;
+  };
+  streak: {
+    current: number;
+    longest: number;
+    solvedToday: boolean;
+    lastSolvedAt: string | null;
+  };
+  badges: Array<{
+    id: string;
+    title: string;
+    description: string;
+    unlocked: boolean;
+  }>;
+  weeklyActivity: Array<{
+    date: string;
+    label: string;
+    solved: number;
+  }>;
   difficulties: Array<{
     difficulty: string;
     total: number;

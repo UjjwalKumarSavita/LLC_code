@@ -22,6 +22,11 @@ export default async function DashboardPage() {
     progress.problems.find((problem) => problem.status === "ATTEMPTED") ??
     progress.problems.find((problem) => problem.status === "UNSOLVED") ??
     progress.problems[0];
+  const unlockedBadges = progress.badges.filter((badge) => badge.unlocked);
+  const weeklyMax = Math.max(
+    1,
+    ...progress.weeklyActivity.map((item) => item.solved)
+  );
 
   return (
     <main className="app-page dashboard-page">
@@ -40,9 +45,33 @@ export default async function DashboardPage() {
 
         <section className="dashboard-stats" aria-label="Progress summary">
           <article><span>01 / SOLVED</span><strong>{progress.stats.solved}</strong><small>of {progress.stats.totalProblems} problems</small></article>
-          <article><span>02 / ATTEMPTS</span><strong>{progress.stats.totalAttempts}</strong><small>{progress.stats.attempted} currently in progress</small></article>
-          <article><span>03 / POINTS</span><strong>{progress.stats.pointsEarned}</strong><small>earned from accepted work</small></article>
-          <article><span>04 / REMAINING</span><strong>{progress.stats.remaining}</strong><small>patterns left to explore</small></article>
+          <article><span>02 / STREAK</span><strong>{progress.streak.current}</strong><small>{progress.streak.solvedToday ? "accepted today" : "solve today to keep it alive"}</small></article>
+          <article><span>03 / LEVEL</span><strong>{progress.xp.level}</strong><small>{progress.xp.totalXp} XP earned</small></article>
+          <article><span>04 / BADGES</span><strong>{unlockedBadges.length}</strong><small>of {progress.badges.length} unlocked</small></article>
+        </section>
+
+        <section className="dashboard-gamified" aria-label="XP and streak details">
+          <article className="level-card">
+            <div>
+              <span>XP ENGINE</span>
+              <h2>Level {progress.xp.level}</h2>
+              <p>{progress.xp.currentLevelXp} / {progress.xp.nextLevelXp} XP to the next level. Accepted solutions give the biggest boost; attempts still count.</p>
+            </div>
+            <i><b style={{ width: `${progress.xp.progressPercent}%` }} /></i>
+          </article>
+          <article className="streak-card">
+            <span>STREAK LOOP</span>
+            <h2>{progress.streak.current} day current · {progress.streak.longest} day best</h2>
+            <div className="week-pulse" aria-label="Solved problems in the last 7 days">
+              {progress.weeklyActivity.map((day) => (
+                <div key={day.date}>
+                  <i style={{ height: `${Math.max(12, (day.solved / weeklyMax) * 58)}px` }} />
+                  <span>{day.label}</span>
+                  <strong>{day.solved}</strong>
+                </div>
+              ))}
+            </div>
+          </article>
         </section>
 
         <div className="dashboard-grid">
@@ -97,6 +126,26 @@ export default async function DashboardPage() {
                   <strong>{topic.solved}/{topic.total}</strong>
                   <i><b style={{ width: `${topic.total ? (topic.solved / topic.total) * 100 : 0}%` }} /></i>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="dashboard-panel dashboard-badges">
+            <div className="dashboard-panel-heading">
+              <div><span>BADGES</span><h2>Milestones.</h2></div>
+            </div>
+            <div className="badge-grid">
+              {progress.badges.map((badge) => (
+                <article
+                  className={badge.unlocked ? "is-unlocked" : ""}
+                  key={badge.id}
+                >
+                  <i>{badge.unlocked ? "✓" : "○"}</i>
+                  <div>
+                    <strong>{badge.title}</strong>
+                    <span>{badge.description}</span>
+                  </div>
+                </article>
               ))}
             </div>
           </section>

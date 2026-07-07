@@ -80,6 +80,31 @@ describe("ProgressService", () => {
       total: 2,
       solved: 1
     });
+    expect(result.xp).toEqual({
+      totalXp: 231,
+      level: 1,
+      currentLevelXp: 231,
+      nextLevelXp: 250,
+      progressPercent: 92
+    });
+    expect(result.streak).toMatchObject({
+      current: 0,
+      longest: 1,
+      solvedToday: false
+    });
+    expect(result.badges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "first-accepted",
+          unlocked: true
+        }),
+        expect.objectContaining({
+          id: "five-solved",
+          unlocked: false
+        })
+      ])
+    );
+    expect(result.weeklyActivity).toHaveLength(7);
     expect(result.problems[2]?.status).toBe(ProgressStatus.UNSOLVED);
   });
 });
