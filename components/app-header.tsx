@@ -37,6 +37,7 @@ export function AppHeader({ active = "" }: { active?: string }) {
       <nav className={open ? "app-nav is-open" : "app-nav"} aria-label="Application navigation">
         <Link className={active === "problems" ? "is-active" : ""} href="/problems">Problems</Link>
         <Link className={active === "roadmaps" ? "is-active" : ""} href="/roadmaps">Roadmaps</Link>
+        <Link className={active === "leaderboard" ? "is-active" : ""} href="/leaderboard">Leaderboard</Link>
         <Link href="/#visualizer">Visualizer</Link>
         <Link className={active === "submissions" ? "is-active" : ""} href="/submissions">Submissions</Link>
         <Link className={active === "dashboard" ? "is-active" : ""} href="/dashboard">Dashboard</Link>

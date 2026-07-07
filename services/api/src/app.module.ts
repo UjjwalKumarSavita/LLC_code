@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { AuthModule } from "./auth/auth.module";
 import { validateEnvironment } from "./config/env.validation";
 import { HealthModule } from "./health/health.module";
+import { LeaderboardModule } from "./leaderboard/leaderboard.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { ProblemsModule } from "./problems/problems.module";
 import { ProgressModule } from "./progress/progress.module";
@@ -30,6 +31,7 @@ import { EditorialsModule } from "./editorials/editorials.module";
     ProgressModule,
     SubmissionsModule,
     EditorialsModule,
+    LeaderboardModule,
     HealthModule
   ],
   providers: [

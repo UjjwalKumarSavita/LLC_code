@@ -74,6 +74,14 @@ test.describe("public learner paths", () => {
     await expect(page.locator(".problem-heading-row h1")).toHaveText("Fizz Buzz");
   });
 
+  test("leaderboard exposes public-safe rankings", async ({ page }) => {
+    await page.goto("/leaderboard");
+    await expect(page.getByRole("heading", { name: /Compete with momentum/ })).toBeVisible();
+    await expect(page.getByText("RANKED LEARNERS")).toBeVisible();
+    await expect(page.getByText("FULL TABLE")).toBeVisible();
+    await expect(page.getByText(/email/i)).not.toBeVisible();
+  });
+
   test("unknown routes render the designed recovery surface", async ({ page }) => {
     await page.goto("/this-route-does-not-exist");
     await expect(page.getByText("ROUTE NOT FOUND")).toBeVisible();

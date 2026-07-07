@@ -18,6 +18,7 @@ asset is required.
 - 4 guided roadmaps with live account progress and 28 mapped problem nodes
 - Monaco code editor with persistent drafts, preferences, and a no-stall fallback
 - Account-owned progress, streaks, XP levels, badges, submission history, and diagnostics
+- Public-safe learner leaderboard ranked by local solved progress and XP
 - Problem and editorial admin review workflows
 - Self-hosted PostgreSQL, Redis/BullMQ, Moby, and Piston
 - 640/640 catalogue reference executions verified
@@ -70,11 +71,12 @@ The setup command generates database, JWT, and worker secrets inside ignored
 1. Open the landing page and switch between pure-black and pure-white themes.
 2. Register a learner account and browse the 50-problem catalogue.
 3. Open **Roadmaps** and follow a structured path into a real problem workspace.
-4. Open **Two Sum**, inspect its full editorial and five-step visualizer.
-5. Write code, run public tests, then submit against protected hidden tests.
-6. Show the real verdict, safe diagnostics, submission archive, and gamified dashboard.
-7. Sign in with the local administrator created during setup.
-8. Open the Problem and Editorial CMS review/publish workflows.
+4. Open **Leaderboard** to show public-safe rankings from local progress.
+5. Open **Two Sum**, inspect its full editorial and five-step visualizer.
+6. Write code, run public tests, then submit against protected hidden tests.
+7. Show the real verdict, safe diagnostics, submission archive, and gamified dashboard.
+8. Sign in with the local administrator created during setup.
+9. Open the Problem and Editorial CMS review/publish workflows.
 
 ## Architecture
 

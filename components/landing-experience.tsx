@@ -236,6 +236,7 @@ export function LandingExperience() {
           <a href="#method">Method</a>
           <a href="#visualizer">Visualizer</a>
           <Link href="/roadmaps">Roadmaps</Link>
+          <Link href="/leaderboard">Leaderboard</Link>
           <Link href="/problems">Problems</Link>
         </nav>
 
