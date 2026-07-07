@@ -174,13 +174,17 @@ Then verify:
 8. Roll back application binaries if checks fail; never reverse a database
    migration without a reviewed recovery plan.
 
-## 10. Current content gates
+## 10. Current launch gates
 
-The platform code is MVP-ready, but public launch still requires:
+The submission-ready local MVP currently includes 50 published judge-ready
+problems, 50 reviewed editorials, 200 language starter templates, 200 editorial
+reference solutions, 10 reviewed visualizers, account progress, submission
+history, leaderboard, roadmap flows, and problem/editorial CMS workflows.
 
-- expanding from 10 to the planned 50 reviewed seed problems;
-- expanding predefined visual examples from 1 to at least 5;
-- accessibility and responsive checks on representative devices;
+Before a public internet launch, still complete:
+
+- accessibility and responsive checks on representative physical devices;
 - a sandbox isolation review on the actual production host;
 - backup restoration and load tests;
-- terms and privacy pages appropriate to the deployment jurisdiction.
+- production-domain terms and privacy pages appropriate to the deployment jurisdiction;
+- edge rate limits and operational monitoring using free/self-hosted tooling.

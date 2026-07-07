@@ -23,7 +23,7 @@ asset is required.
 - Problem and editorial admin review workflows
 - Self-hosted PostgreSQL, Redis/BullMQ, Moby, and Piston
 - 640/640 catalogue reference executions verified
-- 25 backend tests and 14 public desktop/mobile browser checks passing
+- 25 backend tests, 16 public browser checks, and 22 credentialed browser checks passing
 
 ## Fast start on this machine
 
@@ -158,9 +158,9 @@ accounts:
 
 ```powershell
 $env:E2E_EMAIL="learner@example.local"
-$env:E2E_PASSWORD="local-password"
-$env:E2E_ADMIN_EMAIL="admin@example.local"
-$env:E2E_ADMIN_PASSWORD="local-admin-password"
+$env:E2E_PASSWORD="local-learner-password"
+$env:E2E_ADMIN_EMAIL="admin@llc-code.local"
+$env:E2E_ADMIN_PASSWORD="the-password-used-with-start-local-setup"
 npm.cmd run test:e2e
 ```
 

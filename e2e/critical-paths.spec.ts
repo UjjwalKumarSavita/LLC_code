@@ -138,12 +138,12 @@ test.describe("admin CMS critical path", () => {
     await expect
       .poll(async () => (await context.cookies()).map((cookie) => cookie.name))
       .toContain("llc_refresh");
+    await expect(page).toHaveURL(/\/admin\/problems$/);
     const sessionStatus = await page.evaluate(async () => {
       const response = await fetch("/api/auth/me", { cache: "no-store" });
       return response.status;
     });
     expect(sessionStatus).toBe(200);
-    await page.goto("/admin/problems");
     await expect(page.getByRole("heading", { name: "Problem CMS" })).toBeVisible();
 
     try {
@@ -212,7 +212,7 @@ test.describe("admin CMS critical path", () => {
       page.getByRole("button", { name: /ENTER THE LAB/ }).click(),
     ]);
     expect(loginResponse.ok()).toBeTruthy();
-    await page.goto("/admin/editorials");
+    await expect(page).toHaveURL(/\/admin\/editorials$/);
     await expect(page.getByRole("heading", { name: "Editorial CMS" })).toBeVisible();
     await expect(page.getByText("50 / 50")).toBeVisible();
 
@@ -255,7 +255,20 @@ test.describe("admin CMS critical path", () => {
         const items = (await response.json()) as Array<{ id: string; slug: string }>;
         const problem = items.find((item) => item.slug === "power-of-two");
         if (problem) {
-          await fetch(`/api/cms/editorials/${problem.id}`, { method: "DELETE" });
+          await fetch(`/api/cms/editorials/${problem.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              intuition: "A positive power of two has exactly one set bit in binary.",
+              bruteForce: "Repeatedly divide by two and reject any odd remainder before reaching one.",
+              optimizedApproach: "Reject non-positive values.\nUse n - 1 to clear the lowest set bit.\nCheck whether n & (n - 1) is zero.\nReturn true only for that single-set-bit case.",
+              dryRun: "16 is 10000 in binary; 15 is 01111, so their AND is zero.",
+              complexity: "O(1) time / O(1) space",
+              commonMistakes: "Zero must be rejected because 0 & -1 is also zero in many integer models.",
+            }),
+          });
+          await fetch(`/api/cms/editorials/${problem.id}/review`, { method: "POST" });
+          await fetch(`/api/cms/editorials/${problem.id}/publish`, { method: "POST" });
         }
       });
     }

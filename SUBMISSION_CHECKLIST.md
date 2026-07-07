@@ -16,7 +16,7 @@
 ## Before submitting
 
 - [ ] Run `scripts\check-local.cmd` and confirm every line is green.
-- [ ] Open `http://localhost:3000` in a fresh browser window.
+- [ ] Open `https://localhost:3000` in a fresh browser window.
 - [ ] Verify the learner and administrator credentials you intend to demo.
 - [ ] Push the `main` branch to your submission repository or create the final ZIP.
 - [ ] Confirm `.env`, `.env.local`, `.local-runtime`, `node_modules`, and `.next`

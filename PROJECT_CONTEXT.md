@@ -145,19 +145,21 @@ section map, responsive summary cards, and language-specific reference
 solutions that remain separate from learner starter code.
 
 Local Playwright regression uses the installed Chrome browser with no hosted
-service or subscription. Sixteen passing critical-path checks cover
+service or subscription. Sixteen public critical-path checks cover
 desktop/mobile problem discovery, authentication protection, designed route
 recovery, problem workspaces, roadmap-to-workspace navigation, leaderboard
 safety, legal links, and language-specific editorial reference solutions.
-Credential-dependent admin/authenticated flows are skipped unless local E2E
-credentials are supplied. The suite has caught and fixed a pre-hydration login
-submission path that could expose form values in the URL, a 20-item learner
-catalogue pagination ceiling, a CMS session-response mismatch that redirected
-valid administrators, a rolling-response editorial shape crash, and a mobile
-canvas tap interception issue.
+With local learner/admin credentials supplied, twenty-two checks pass and only
+the two mobile duplicates of destructive admin CMS flows are intentionally
+skipped. The suite has caught and fixed a pre-hydration login submission path
+that could expose form values in the URL, a 20-item learner catalogue pagination
+ceiling, a CMS session-response mismatch that redirected valid administrators,
+a rolling-response editorial shape crash, a mobile canvas tap interception
+issue, admin post-login navigation races, and destructive editorial-test cleanup
+that could leave seeded coverage below 50/50.
 
 Release regression currently passes frontend lint/build, backend lint/build,
-25 backend tests, 640/640 catalogue sandbox executions, 16 passing browser
+25 backend tests, 640/640 catalogue sandbox executions, 22 credentialed browser
 checks, API health checks, and a production dependency audit with zero known
 vulnerabilities. The free Moby daemon is held by a persistent hidden WSL host
 process; PostgreSQL and Redis are healthy, Piston exposes all four required
